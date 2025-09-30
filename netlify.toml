@@ -6,6 +6,9 @@
   NODE_VERSION = "18"
   NPM_VERSION = "9"
 
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -18,7 +21,6 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 [[headers]]
   for = "/_next/static/*"
@@ -40,19 +42,6 @@
   [headers.values]
     Cache-Control = "public, max-age=86400"
 
-# Functions
-[functions]
-  directory = "netlify/functions"
-
-# Edge Functions
-[[edge_functions]]
-  function = "hello"
-  path = "/api/hello"
-
-# Form handling
-[[forms]]
-  name = "contact"
-
 # Branch deploy settings
 [context.production]
   command = "npm run build"
@@ -62,10 +51,6 @@
 
 [context.branch-deploy]
   command = "npm run build"
-
-# Plugin settings
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
 
 # Environment variables (set these in Netlify dashboard)
 # NEXT_PUBLIC_SUPABASE_URL

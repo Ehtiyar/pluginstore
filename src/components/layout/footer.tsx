@@ -4,7 +4,7 @@ import {
   Twitter, 
   Instagram, 
   Youtube, 
-  Discord,
+  MessageCircle,
   Mail,
   Phone,
   MapPin,
@@ -37,7 +37,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <Discord className="h-5 w-5" />
+                <MessageCircle className="h-5 w-5" />
               </Link>
               <Link 
                 href="https://twitter.com/your-twitter" 

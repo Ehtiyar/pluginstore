@@ -1,7 +1,8 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User } from '@supabase/supabase-js'
+import { User as SupabaseUser } from '@supabase/supabase-js'
+import { User } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/useStore'
 
@@ -16,6 +17,54 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+// Helper function to convert SupabaseUser to our custom User type
+const convertSupabaseUserToUser = async (supabaseUser: SupabaseUser | null): Promise<User | null> => {
+  if (!supabaseUser) return null
+
+  try {
+    // Try to get the user profile from our database
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', supabaseUser.id)
+      .single()
+
+    if (profile && !error) {
+      return {
+        id: profile.id,
+        email: supabaseUser.email || '',
+        username: profile.username,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        minecraft_username: profile.minecraft_username,
+        bio: profile.bio,
+        website: profile.website,
+        location: profile.location,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+      }
+    }
+
+    // If no profile exists, create a basic user object
+    return {
+      id: supabaseUser.id,
+      email: supabaseUser.email || '',
+      username: supabaseUser.email?.split('@')[0] || 'user',
+      full_name: supabaseUser.user_metadata?.full_name,
+      avatar_url: supabaseUser.user_metadata?.avatar_url,
+      minecraft_username: supabaseUser.user_metadata?.minecraft_username,
+      bio: null,
+      website: null,
+      location: null,
+      created_at: supabaseUser.created_at,
+      updated_at: supabaseUser.updated_at || supabaseUser.created_at,
+    }
+  } catch (error) {
+    console.error('Error converting Supabase user:', error)
+    return null
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,8 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Get initial session
     const getInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setStoreUser(session?.user ?? null)
+      const convertedUser = await convertSupabaseUserToUser(session?.user ?? null)
+      setUser(convertedUser)
+      setStoreUser(convertedUser)
       setLoading(false)
       setStoreLoading(false)
     }
@@ -36,8 +86,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setUser(session?.user ?? null)
-        setStoreUser(session?.user ?? null)
+        const convertedUser = await convertSupabaseUserToUser(session?.user ?? null)
+        setUser(convertedUser)
+        setStoreUser(convertedUser)
         setLoading(false)
         setStoreLoading(false)
 
@@ -51,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [setStoreUser, setStoreLoading])
 
-  const createOrUpdateProfile = async (user: User) => {
+  const createOrUpdateProfile = async (user: SupabaseUser) => {
     try {
       const { data: profile, error } = await supabase
         .from('profiles')

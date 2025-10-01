@@ -53,9 +53,9 @@ const convertSupabaseUserToUser = async (supabaseUser: SupabaseUser | null): Pro
       full_name: supabaseUser.user_metadata?.full_name,
       avatar_url: supabaseUser.user_metadata?.avatar_url,
       minecraft_username: supabaseUser.user_metadata?.minecraft_username,
-      bio: null,
-      website: null,
-      location: null,
+      bio: undefined,
+      website: undefined,
+      location: undefined,
       created_at: supabaseUser.created_at,
       updated_at: supabaseUser.updated_at || supabaseUser.created_at,
     }
